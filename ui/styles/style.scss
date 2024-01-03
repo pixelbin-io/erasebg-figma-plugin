@@ -2108,11 +2108,8 @@ button {
 .main-container {
 	padding: 12px;
 	color: #aaabc5 !important;
-	display: flex;
-	flex-direction: column;
-	justify-content: space-between;
-	height: 100%;
 	position: relative;
+	height: 100%;
 }
 
 .hide-overflow {
@@ -2126,6 +2123,12 @@ button {
 .white-text {
 	color: #ececf9 !important;
 	font-size: 12px;
+	padding-left: 6px;
+}
+
+.dropdown-label {
+	margin-bottom: 4px;
+	font-size: 10px;
 }
 .checkbox__label::before {
 	border: 1px solid white !important;
@@ -2178,5 +2181,54 @@ button {
 	top: 10px;
 	right: 10px;
 	position: absolute;
+}
+
+.api-key-steps {
+	font-size: 12px;
+	color: var(--white);
+}
+
+.token-input-box {
+	position: relative;
+	align-items: center;
+	width: 100%;
+	color: var(--figma-color-text);
+	box-shadow: inset 0 0 0 1px var(--figma-color-border);
+	transition: box-shadow 0.2s;
+	background: none;
+	-webkit-appearance: none;
+	font-family: Inter, sans-serif;
+	outline: none;
+	border: none;
+	font-size: 12px;
+	line-height: 16px;
+	padding: 7px 8px;
+	margin: 0;
+	border-radius: 5px;
+	display: block;
+	margin-top: 24px;
+}
+
+.api-key-ui {
+	display: flex;
+	flex-direction: column;
+	justify-content: space-between;
+	align-items: center;
+	height: 100%;
+}
+
+.api-key-btn-container {
+	display: flex;
+	align-items: center;
+	justify-content: right;
+	width: 100%;
+	margin-top: 16px;
+}
+
+.main-ui-container {
+	display: flex;
+	flex-direction: column;
+	justify-content: space-between;
+	height: 100%;
 }
 // *********************************** ------ ************************************** //

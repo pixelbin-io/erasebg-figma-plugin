@@ -1,4 +1,4 @@
-const eraseBgOptions = [
+export const eraseBgOptions = [
 	{
 		name: "Industry Type",
 		type: "enum",
@@ -25,4 +25,13 @@ const eraseBgOptions = [
 	},
 ];
 
-export default eraseBgOptions;
+export enum msgTypes {
+	TOGGLE_LOADER = "toggle-loader",
+	INITIAL_CALL = "initial-call",
+	CREATE_FORM = "create-form",
+	TRANSFORM = "transform",
+	REPLACE_IMAGE = "replace-image",
+	SELCTED_IMAGE = "selected-image",
+	SAVE_TOKEN = "save-token",
+	IS_TOKEN_SAVED = "is-token-saved",
+}
