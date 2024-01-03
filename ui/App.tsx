@@ -219,12 +219,7 @@ function App() {
 							<div className="icon icon--swap icon--blue reset-icon"></div>
 							<div className="reset-text">Reset all</div>
 						</div>
-						<button
-							onClick={handleTokenDelete}
-							className="button button--primary"
-						>
-							Delete
-						</button>
+
 						<button
 							id="submit-btn"
 							onClick={handleSubmit}
@@ -269,12 +264,6 @@ function App() {
 					</div>
 
 					<div className="api-key-btn-container">
-						<button
-							onClick={handleTokenDelete}
-							className="button button--primary"
-						>
-							Delete
-						</button>
 						<button
 							id="submit-token"
 							onClick={handleTokenSave}
