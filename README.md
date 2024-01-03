@@ -1,1 +1,1 @@
-# erasebg-pixelbin-plugin
+# erasebg-figma-plugin
