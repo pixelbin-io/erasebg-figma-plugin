@@ -14,6 +14,8 @@ function App() {
 	const [isLoading, setIsLoading] = useState(false);
 	const [isTokenSaved, setIsTokenSaved] = useState(false);
 	const [tokenValue, setTokenValue] = useState(null);
+	const [tokenErr, setTokenErr] = useState(false);
+	const [isTokenEditOn, setIsTokenEditOn] = useState(false);
 
 	useEffect(() => {
 		parent.postMessage(
@@ -30,6 +32,9 @@ function App() {
 		const { data } = event;
 		if (data.pluginMessage.type === msgTypes.IS_TOKEN_SAVED) {
 			setIsTokenSaved(data.pluginMessage.value);
+			if (data.pluginMessage.value)
+				setTokenValue(data.pluginMessage.savedToken);
+			if (data.pluginMessage.isTokenEditing) setIsTokenEditOn(true);
 		}
 		if (data.pluginMessage.type === msgTypes.CREATE_FORM) {
 			let temp = { ...formValues };
@@ -46,8 +51,6 @@ function App() {
 			setFormValues({ ...temp });
 		}
 		if (data.pluginMessage.type === msgTypes.SELCTED_IMAGE) {
-			console.log("RECEIVED VALUE", data.pluginMessage.token);
-
 			const defaultPixelBinClient: PixelbinClient = new PixelbinClient(
 				new PixelbinConfig({
 					domain: "https://api.pixelbin.io",
@@ -66,11 +69,14 @@ function App() {
 				cloudName: "muddy-lab-41820d",
 				zone: "default", // optional
 			});
+
+			// const pixelbin =	Pixelbin.utils.urlToObj(transformationRequest.pixelbin_url);
+
 			const EraseBg = transformations.EraseBG;
 			let name = `${data?.pluginMessage?.imageName}${uuidv4()}`;
 
 			res = await defaultPixelBinClient.assets.createSignedUrlV2({
-				path: "figma/ebg",
+				path: "__figma/ebg",
 				name: name,
 				format: "jpeg",
 				access: "public-read",
@@ -172,16 +178,36 @@ function App() {
 		setFormValues({ ...temp });
 	}
 
-	function handleTokenSave() {
-		parent.postMessage(
-			{
-				pluginMessage: {
-					type: msgTypes.SAVE_TOKEN,
-					value: tokenValue,
-				},
-			},
-			"*"
+	async function handleTokenSave() {
+		setTokenErr(false);
+		setIsLoading(true);
+
+		const defaultPixelBinClient: PixelbinClient = new PixelbinClient(
+			new PixelbinConfig({
+				domain: "https://api.pixelbin.io",
+				apiSecret: tokenValue,
+			})
 		);
+
+		PdkAxios.defaults.withCredentials = false;
+
+		try {
+			await defaultPixelBinClient.assets.getDefaultAssetForPlayground();
+			parent.postMessage(
+				{
+					pluginMessage: {
+						type: msgTypes.SAVE_TOKEN,
+						value: tokenValue,
+					},
+				},
+				"*"
+			);
+			setIsLoading(false);
+			setIsTokenEditOn(false);
+		} catch (err) {
+			setTokenErr(true);
+			setIsLoading(false);
+		}
 	}
 
 	function handleTokenDelete() {
@@ -209,7 +235,7 @@ function App() {
 
 	return (
 		<div className={`main-container ${isLoading ? "hide-overflow" : ""}`}>
-			{isTokenSaved ? (
+			{isTokenSaved && !isTokenEditOn ? (
 				<div className="main-ui-container">
 					<div>
 						<div id="options-wrapper">{formComponentCreator()}</div>
@@ -219,7 +245,13 @@ function App() {
 							<div className="icon icon--swap icon--blue reset-icon"></div>
 							<div className="reset-text">Reset all</div>
 						</div>
-
+						{/* <button
+							id="delete-token"
+							onClick={handleTokenDelete}
+							className="button button--primary"
+						>
+							Delete
+						</button> */}
 						<button
 							id="submit-btn"
 							onClick={handleSubmit}
@@ -228,29 +260,24 @@ function App() {
 							Apply
 						</button>
 					</div>
-					{isLoading && (
-						<div className="loader-modal">
-							<img src={LoaderGif} alt="Loader" height={50} width={50} />
-						</div>
-					)}
 				</div>
 			) : (
 				<div className="api-key-ui">
 					<div className="api-key-steps">
 						<div>
-							1. Go to <br />
+							1. Go to
 							<a
 								style={{ color: "#0c8ce9", textDecoration: "none" }}
 								href="https://console.pixelbin.io/choose-org?redirectTo=settings/apps"
 							>
-								https://console.pixelbin.io/choose-org?redirectTo=settings/apps
+								Pixelbin.io
 							</a>
 							<br /> and choose your organisation
 						</div>
 						<br />
 						<div>
-							2. Go to Tokens, Create new token if you dont have one or Just
-							copy the active one.
+							2. Create new token or select the existing one , copy the active
+							one and paste it here.
 						</div>
 						<input
 							className="token-input-box"
@@ -258,9 +285,10 @@ function App() {
 							placeholder="Token here"
 							onChange={(e) => {
 								setTokenValue(e.target.value);
-								console.log("BEFORE PASSING, ", e.target.value);
 							}}
+							value={tokenValue ? tokenValue : null}
 						/>
+						{tokenErr && <div className="token-err ">Invalid token.</div>}
 					</div>
 
 					<div className="api-key-btn-container">
@@ -268,10 +296,16 @@ function App() {
 							id="submit-token"
 							onClick={handleTokenSave}
 							className="button button--primary"
+							disabled={!tokenValue}
 						>
 							Save
 						</button>
 					</div>
+				</div>
+			)}
+			{isLoading && (
+				<div className="loader-modal">
+					<img src={LoaderGif} alt="Loader" height={50} width={50} />
 				</div>
 			)}
 		</div>

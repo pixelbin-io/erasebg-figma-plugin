@@ -30,18 +30,20 @@ figma.ui.onmessage = async (msg) => {
 
 		try {
 			savedToken = await figma.clientStorage.getAsync("persistedToken");
-			console.log("persistedToken", savedToken);
 			if (savedToken !== undefined && savedToken !== null) {
 				figma.ui.postMessage({
 					type: msgTypes.IS_TOKEN_SAVED,
 					value: true,
 					savedFormValue: "",
+					isTokenEditing: figma.command === "token-reset-command",
+					savedToken,
 				});
 			} else {
 				figma.ui.postMessage({
 					type: msgTypes.IS_TOKEN_SAVED,
 					value: false,
 					savedFormValue: "",
+					isTokenEditing: figma.command === "token-reset-command",
 				});
 			}
 		} catch (err) {
@@ -49,11 +51,9 @@ figma.ui.onmessage = async (msg) => {
 		}
 	}
 	if (msg.type === msgTypes.SAVE_TOKEN) {
-		console.log("PAssed values", msg.value);
 		figma.clientStorage
 			.setAsync("persistedToken", msg.value)
 			.then(() => {
-				console.log("Token Saved");
 				const body = {
 					type: msgTypes.CREATE_FORM,
 					optionsArray: eraseBgOptions,
@@ -72,31 +72,9 @@ figma.ui.onmessage = async (msg) => {
 			.catch((err) => {
 				console.error("Error saving token:", err);
 			});
-
-		figma.clientStorage
-			.getAsync("persistedToken")
-			.then((value) => {
-				console.log("SAVED VALUE", value);
-			})
-			.catch((err) => {
-				console.log("SAVED VALUE ERR", err);
-			});
 	}
 	if (msg.type === "delete-token") {
-		console.log(
-			"BRFOE DELETION",
-			await figma.clientStorage.getAsync("persistedToken")
-		);
 		figma.clientStorage.deleteAsync("persistedToken");
-		console.log("Key Deleted");
-		figma.clientStorage
-			.getAsync("persistedToken")
-			.then((value) => {
-				console.log("Value after Deletion", value);
-			})
-			.then((err) => {
-				console.log("Value after Deletion Err", err);
-			});
 	}
 
 	if (msg.type === msgTypes.TRANSFORM) {
@@ -119,7 +97,6 @@ figma.ui.onmessage = async (msg) => {
 			figma.notify("Please select a single image");
 			return;
 		} else {
-			console.log("Persisted Value 2", savedToken);
 			node = figma.currentPage.selection[0];
 			if (node.fills[0].type !== "IMAGE") {
 				figma.notify("Make sure you are selecting an image");

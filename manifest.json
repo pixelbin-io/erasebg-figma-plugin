@@ -4,5 +4,15 @@
 	"api": "1.0.0",
 	"editorType": ["figma"],
 	"main": "dist/plugin/index.js",
-	"ui": "dist/ui/index.html"
+	"ui": "dist/ui/index.html",
+	"menu": [
+		{
+			"name": "Erase.bg",
+			"command": "erase-bg-ui-command"
+		},
+		{
+			"name": "Set/Reset Token",
+			"command": "token-reset-command"
+		}
+	]
 }
