@@ -2152,6 +2152,8 @@ button {
 	position: absolute;
 	top: 0;
 	left: 0;
+	flex-direction: column;
+	justify-content: space-between;
 }
 
 .select-wrapper {
@@ -2298,10 +2300,6 @@ select {
 	appearance: none;
 	color: var(--figma-color-bg-inverse);
 }
-select:focus {
-	outline: none !important;
-	border: 1px solid #18a0fb;
-}
 
 .token-input-box {
 	border: none;
@@ -2311,4 +2309,26 @@ select:focus {
 	color: var(--figma-color-bg-inverse);
 }
 
+.loader-cancl-btn {
+	background: transparent;
+	margin-top: 16px;
+	border: 1px solid var(--figma-color-bg-brand);
+	color: var(--figma-color-bg-brand);
+}
+
+.loader-cancel-container {
+	display: flex;
+	min-width: 100vw;
+	justify-content: flex-end;
+	padding: 0 12px 12px;
+}
+
+.loader-img-container {
+	display: flex;
+	min-height: 100%;
+	min-width: 100%;
+	justify-content: center;
+	align-items: center;
+	flex-grow: 1;
+}
 // *********************************** ------ ************************************** //

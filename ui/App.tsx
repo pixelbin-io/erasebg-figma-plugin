@@ -11,6 +11,7 @@ import { PIXELBIN_IO } from "../config";
 import CreditsUI from "./components/creditDetails";
 import TokenUI from "./components/TokenUI";
 import DynamicForm from "./components/dynamicForm";
+import Loader from "./components/loader";
 
 function App() {
 	const [formValues, setFormValues] = useState<any>({});
@@ -19,6 +20,9 @@ function App() {
 	const [tokenValue, setTokenValue] = useState(null);
 	const [tokenErr, setTokenErr] = useState(false);
 	const [isTokenEditOn, setIsTokenEditOn] = useState(false);
+	const [isCancellable, setIsCancellable] = useState(false);
+	const [isReqCancelled, setIsReqCancelled] = useState(false);
+	var isReqCancelledVar = false;
 
 	const {
 		INITIAL_CALL,
@@ -29,7 +33,11 @@ function App() {
 		TRANSFORM,
 		SELCTED_IMAGE,
 		REPLACE_IMAGE,
+		DELETE_TOKEN,
 	} = EVENTS;
+
+	const abortController = new AbortController();
+	const signal = abortController.signal;
 
 	useEffect(() => {
 		parent.postMessage(
@@ -95,6 +103,12 @@ function App() {
 			function uploadWithRetry(blob, presignedUrl, options) {
 				return Pixelbin.upload(blob, presignedUrl, options)
 					.then(() => {
+						// console.log("isReqCancelled", isReqCancelledVar);
+						// if (isReqCancelledVar) {
+						// 	console.log("isReqCancelled2", isReqCancelledVar);
+						// 	isReqCancelledVar = false;
+						// 	return;
+						// } else {
 						const url = JSON.parse(
 							presignedUrl.fields["x-pixb-meta-assetdata"]
 						);
@@ -109,6 +123,7 @@ function App() {
 							},
 							"*"
 						);
+						// }
 					})
 					.catch((err) => {
 						console.log(`Retry upload`);
@@ -120,10 +135,12 @@ function App() {
 				chunkSize: 2 * 1024 * 1024,
 				maxRetries: 1,
 				concurrency: 2,
+				// signal: signal,
 			}).catch((err) => console.log("Final error:", err));
 		}
 		if (data.pluginMessage.type === TOGGLE_LOADER) {
 			setIsLoading(data.pluginMessage.value);
+			setIsCancellable(data.pluginMessage.value);
 		}
 	};
 
@@ -170,15 +187,25 @@ function App() {
 	}
 
 	function handleTokenDelete() {
-		tokenValue("");
+		setTokenValue(null);
 		parent.postMessage(
 			{
 				pluginMessage: {
-					type: "delete-token",
+					type: DELETE_TOKEN,
 				},
 			},
 			"*"
 		);
+	}
+
+	function onAbort() {
+		// console.log("Aborted");
+		// setIsReqCancelled(true);
+		// isReqCancelledVar = true;
+		// abortController.abort();
+		// setIsLoading(false);
+		// setIsCancellable(false);
+		// console.log("ENd Aborted");
 	}
 
 	function handleSubmit() {
@@ -192,6 +219,10 @@ function App() {
 			"*"
 		);
 	}
+
+	useEffect(() => {
+		console.log("formValues", formValues);
+	}, [formValues]);
 
 	return (
 		<div className={`main-container ${isLoading ? "hide-overflow" : ""}`}>
@@ -241,11 +272,7 @@ function App() {
 					handleTokenSave={handleTokenSave}
 				/>
 			)}
-			{isLoading && (
-				<div className="loader-modal">
-					<img src={LoaderGif} alt="Loader" height={50} width={50} />
-				</div>
-			)}
+			{isLoading && <Loader isCancellable={false} onCancelClick={onAbort} />}
 		</div>
 	);
 }

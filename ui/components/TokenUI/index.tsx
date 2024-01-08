@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import "../../styles/style.scss";
 import { PIXELBIN_CONSOLE_SETTINGS } from "../../../config";
 import { EVENTS } from "../../../constants";
@@ -33,6 +33,10 @@ function TokenUI({
 	setTokenValue,
 }: props) {
 	const [isTokenTypePass, setIsTokenTypePass] = useState(true);
+	useEffect(() => {
+		console.log("Data", tokenValue);
+	}, [tokenValue]);
+
 	return (
 		<div className="api-key-ui">
 			<div className="api-key-steps">
@@ -61,7 +65,7 @@ function TokenUI({
 						onChange={(e) => {
 							setTokenValue(e.target.value);
 						}}
-						value={tokenValue ? tokenValue : null}
+						value={tokenValue !== null ? tokenValue : ""}
 					/>
 					{
 						<div>

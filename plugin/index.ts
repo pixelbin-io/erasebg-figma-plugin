@@ -34,7 +34,7 @@ const {
 const { HOW_IT_WORKS_CMD, TOKEN_RESET_CMD } = COMMANDS;
 
 if (figma.command === HOW_IT_WORKS_CMD) {
-	figma.openExternal(HOW_IT_WORKS_URL);
+	figma.openExternal("https://www.erase.bg/");
 }
 
 function toggleLoader(value: boolean) {
@@ -101,7 +101,14 @@ figma.ui.onmessage = async (msg) => {
 			});
 	}
 	if (msg.type === DELETE_TOKEN) {
-		figma.clientStorage.deleteAsync(PERSISTED_TOKEN);
+		figma.clientStorage
+			.deleteAsync(PERSISTED_TOKEN)
+			.then(() => {
+				console.log("Deleted");
+			})
+			.catch((err) => {
+				console.log("err", err);
+			});
 	}
 
 	if (msg.type === TRANSFORM) {
