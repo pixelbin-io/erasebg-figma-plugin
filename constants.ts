@@ -34,4 +34,5 @@ export enum msgTypes {
 	SELCTED_IMAGE = "selected-image",
 	SAVE_TOKEN = "save-token",
 	IS_TOKEN_SAVED = "is-token-saved",
+	OPEN_EXTERNAL_URL = "open-external-url",
 }

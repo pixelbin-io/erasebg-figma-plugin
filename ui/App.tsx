@@ -8,6 +8,7 @@ import { Util } from "./../util.ts";
 import "./styles/style.scss";
 import Pixelbin, { transformations } from "@pixelbin/core";
 import LoaderGif from "../assets/loader.gif";
+import { PIXELBIN_IO, PIXELBIN_CONSOLE_SETTINGS } from "../config";
 
 function App() {
 	const [formValues, setFormValues] = useState<any>({});
@@ -16,6 +17,8 @@ function App() {
 	const [tokenValue, setTokenValue] = useState(null);
 	const [tokenErr, setTokenErr] = useState(false);
 	const [isTokenEditOn, setIsTokenEditOn] = useState(false);
+	const [isThemeDark, setIsThemeDark] = useState(false);
+	const [isTokenTypePass, setIsTokenTypePass] = useState(true);
 
 	useEffect(() => {
 		parent.postMessage(
@@ -27,6 +30,17 @@ function App() {
 			"*"
 		);
 	}, []);
+
+	useEffect(() => {
+		const darkThemeMq = window.matchMedia("(prefers-color-scheme: dark)");
+		setIsThemeDark(darkThemeMq.matches);
+	});
+
+	window
+		.matchMedia("(prefers-color-scheme: dark)")
+		.addEventListener("change", (event) => {
+			setIsThemeDark(event.matches);
+		});
 
 	window.onmessage = async (event) => {
 		const { data } = event;
@@ -53,7 +67,7 @@ function App() {
 		if (data.pluginMessage.type === msgTypes.SELCTED_IMAGE) {
 			const defaultPixelBinClient: PixelbinClient = new PixelbinClient(
 				new PixelbinConfig({
-					domain: "https://api.pixelbin.io",
+					domain: `${PIXELBIN_IO}`,
 					apiSecret: `${data.pluginMessage.token}`,
 				})
 			);
@@ -70,8 +84,6 @@ function App() {
 				zone: "default", // optional
 			});
 
-			// const pixelbin =	Pixelbin.utils.urlToObj(transformationRequest.pixelbin_url);
-
 			const EraseBg = transformations.EraseBG;
 			let name = `${data?.pluginMessage?.imageName}${uuidv4()}`;
 
@@ -86,28 +98,35 @@ function App() {
 				filenameOverride: false,
 			});
 
-			Pixelbin.upload(blob as File, res?.presignedUrl, {
+			function uploadWithRetry(blob, presignedUrl, options) {
+				return Pixelbin.upload(blob, presignedUrl, options)
+					.then(() => {
+						const url = JSON.parse(
+							presignedUrl.fields["x-pixb-meta-assetdata"]
+						);
+						const demoImage = pixelbin.image(url?.fileId);
+						demoImage.setTransformation(EraseBg.bg(formValues));
+						parent.postMessage(
+							{
+								pluginMessage: {
+									type: msgTypes.REPLACE_IMAGE,
+									bgRemovedUrl: demoImage.getUrl(),
+								},
+							},
+							"*"
+						);
+					})
+					.catch((err) => {
+						console.log(`Retry upload`);
+						return uploadWithRetry(blob, presignedUrl, options);
+					});
+			}
+
+			uploadWithRetry(blob, res?.presignedUrl, {
 				chunkSize: 2 * 1024 * 1024,
 				maxRetries: 1,
 				concurrency: 2,
-			})
-				.then(() => {
-					const url = JSON.parse(
-						res.presignedUrl.fields["x-pixb-meta-assetdata"]
-					);
-					const demoImage = pixelbin.image(url?.fileId);
-					demoImage.setTransformation(EraseBg.bg(formValues));
-					parent.postMessage(
-						{
-							pluginMessage: {
-								type: msgTypes.REPLACE_IMAGE,
-								bgRemovedUrl: demoImage.getUrl(),
-							},
-						},
-						"*"
-					);
-				})
-				.catch((err) => console.log("Error while uploading", err));
+			}).catch((err) => console.log("Final error:", err));
 		}
 		if (data.pluginMessage.type === msgTypes.TOGGLE_LOADER) {
 			setIsLoading(data.pluginMessage.value);
@@ -122,7 +141,7 @@ function App() {
 						case "enum":
 							return (
 								<div>
-									<div className="white-text dropdown-label">{obj.title}</div>
+									<div className="generic-text dropdown-label">{obj.title}</div>
 									<div className="select-wrapper">
 										<select
 											onChange={(e) => {
@@ -157,7 +176,7 @@ function App() {
 											});
 										}}
 									/>
-									<div className="white-text">{obj.title}</div>
+									<div className="generic-text">{obj.title}</div>
 								</div>
 							);
 
@@ -184,7 +203,7 @@ function App() {
 
 		const defaultPixelBinClient: PixelbinClient = new PixelbinClient(
 			new PixelbinConfig({
-				domain: "https://api.pixelbin.io",
+				domain: `${PIXELBIN_IO}`,
 				apiSecret: tokenValue,
 			})
 		);
@@ -192,7 +211,8 @@ function App() {
 		PdkAxios.defaults.withCredentials = false;
 
 		try {
-			await defaultPixelBinClient.assets.getDefaultAssetForPlayground();
+			const orgDetails =
+				await defaultPixelBinClient.organization.getAppOrgDetails();
 			parent.postMessage(
 				{
 					pluginMessage: {
@@ -211,6 +231,7 @@ function App() {
 	}
 
 	function handleTokenDelete() {
+		tokenValue("");
 		parent.postMessage(
 			{
 				pluginMessage: {
@@ -233,25 +254,65 @@ function App() {
 		);
 	}
 
+	function handleLinkClick(url: string) {
+		parent.postMessage(
+			{
+				pluginMessage: {
+					type: msgTypes.OPEN_EXTERNAL_URL,
+					url,
+				},
+			},
+			"*"
+		);
+	}
+
 	return (
-		<div className={`main-container ${isLoading ? "hide-overflow" : ""}`}>
+		<div
+			className={`${
+				isThemeDark ? "main-container-dark" : "main-container-light"
+			} ${isLoading ? "hide-overflow" : ""}`}
+		>
 			{isTokenSaved && !isTokenEditOn ? (
 				<div className="main-ui-container">
 					<div>
 						<div id="options-wrapper">{formComponentCreator()}</div>
+
+						<div className="credit-details-container">
+							<div className="credit-details-sub-container">
+								Credits remaining : <span>20</span>
+							</div>
+							<div className="credit-details-sub-container">
+								Credits used : <span>10</span>
+							</div>
+							<div
+								onClick={() => {
+									handleLinkClick(
+										`${PIXELBIN_CONSOLE_SETTINGS}/billing/pricing`
+									);
+								}}
+								className="buy-credits-btn"
+							>
+								Buy credits
+							</div>
+						</div>
 					</div>
 					<div className="bottom-btn-container">
 						<div className="reset-container" id="reset" onClick={handleReset}>
 							<div className="icon icon--swap icon--blue reset-icon"></div>
 							<div className="reset-text">Reset all</div>
 						</div>
-						{/* <button
+						<button
 							id="delete-token"
 							onClick={handleTokenDelete}
-							className="button button--primary"
+							style={{
+								color: "transparent",
+								background: "transparent",
+								border: "none",
+								cursor: "pointer",
+							}}
 						>
-							Delete
-						</button> */}
+							D
+						</button>
 						<button
 							id="submit-btn"
 							onClick={handleSubmit}
@@ -266,12 +327,14 @@ function App() {
 					<div className="api-key-steps">
 						<div>
 							1. Go to
-							<a
-								style={{ color: "#0c8ce9", textDecoration: "none" }}
-								href="https://console.pixelbin.io/choose-org?redirectTo=settings/apps"
+							<span
+								className="link"
+								onClick={() => {
+									handleLinkClick(`${PIXELBIN_CONSOLE_SETTINGS}/apps`);
+								}}
 							>
-								Pixelbin.io
-							</a>
+								&nbsp;Pixelbin.io
+							</span>
 							<br /> and choose your organisation
 						</div>
 						<br />
@@ -279,19 +342,59 @@ function App() {
 							2. Create new token or select the existing one , copy the active
 							one and paste it here.
 						</div>
-						<input
-							className="token-input-box"
-							type="text"
-							placeholder="Token here"
-							onChange={(e) => {
-								setTokenValue(e.target.value);
-							}}
-							value={tokenValue ? tokenValue : null}
-						/>
+						<div className="token-input-container">
+							<input
+								className="token-input-box"
+								type={`${isTokenTypePass ? "password" : "text"}`}
+								placeholder="Token here"
+								onChange={(e) => {
+									setTokenValue(e.target.value);
+								}}
+								value={tokenValue ? tokenValue : null}
+							/>
+							{
+								<div>
+									{tokenValue ? (
+										isTokenTypePass ? (
+											<div
+												onClick={() => {
+													setIsTokenTypePass(!isTokenTypePass);
+												}}
+												className="icon  icon--blue icon--visible"
+											/>
+										) : (
+											<div
+												onClick={() => {
+													setIsTokenTypePass(!isTokenTypePass);
+												}}
+												className="icon  icon--blue icon--hidden
+											"
+											/>
+										)
+									) : null}
+								</div>
+							}
+						</div>
 						{tokenErr && <div className="token-err ">Invalid token.</div>}
 					</div>
 
-					<div className="api-key-btn-container">
+					<div
+						className={`api-key-btn-container ${
+							tokenValue ? "space-between" : "right"
+						}`}
+					>
+						{tokenValue && (
+							<div
+								onClick={handleTokenDelete}
+								className="delete-token-container"
+							>
+								<div className="icon  icon--blue icon--trash"></div>
+								<div className="reset-text" style={{ fontSize: 12 }}>
+									Delete token
+								</div>
+							</div>
+						)}
+
 						<button
 							id="submit-token"
 							onClick={handleTokenSave}

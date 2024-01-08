@@ -1,4 +1,5 @@
 import { eraseBgOptions, msgTypes } from "../constants";
+import { HOW_IT_WORKS_URL } from "../config";
 
 //Append the UI
 figma.showUI(__html__, {
@@ -9,6 +10,10 @@ figma.showUI(__html__, {
 });
 
 const rectangles: RectangleNode[] = [];
+
+if (figma.command === "how-it-works-command") {
+	figma.openExternal(HOW_IT_WORKS_URL);
+}
 
 function toggleLoader(value: boolean) {
 	figma.ui.postMessage({
@@ -118,6 +123,9 @@ figma.ui.onmessage = async (msg) => {
 				}
 			}
 		}
+	}
+	if (msg.type === msgTypes.OPEN_EXTERNAL_URL) {
+		figma.openExternal(msg.url);
 	}
 	if (msg.type === msgTypes.REPLACE_IMAGE) {
 		figma

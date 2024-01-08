@@ -7,12 +7,16 @@
 	"ui": "dist/ui/index.html",
 	"menu": [
 		{
-			"name": "Erase.bg",
+			"name": "Run",
 			"command": "erase-bg-ui-command"
 		},
 		{
 			"name": "Set/Reset Token",
 			"command": "token-reset-command"
+		},
+		{
+			"name": "How it works",
+			"command": "how-it-works-command"
 		}
 	]
 }
