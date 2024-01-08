@@ -1,4 +1,11 @@
-import { eraseBgOptions, EVENTS } from "../constants";
+import {
+	eraseBgOptions,
+	EVENTS,
+	COMMANDS,
+	PERSISTED_TOKEN,
+	SAVED_FORM_VALUE,
+	IMAGE,
+} from "../constants";
 import { HOW_IT_WORKS_URL } from "../config";
 
 //Append the UI
@@ -20,9 +27,13 @@ const {
 	SELCTED_IMAGE,
 	OPEN_EXTERNAL_URL,
 	REPLACE_IMAGE,
+	DELETE_TOKEN,
+	CLOSE_PLUGIN,
 } = EVENTS;
 
-if (figma.command === "how-it-works-command") {
+const { HOW_IT_WORKS_CMD, TOKEN_RESET_CMD } = COMMANDS;
+
+if (figma.command === HOW_IT_WORKS_CMD) {
 	figma.openExternal(HOW_IT_WORKS_URL);
 }
 
@@ -45,13 +56,13 @@ figma.ui.onmessage = async (msg) => {
 		};
 
 		try {
-			savedToken = await figma.clientStorage.getAsync("persistedToken");
+			savedToken = await figma.clientStorage.getAsync(PERSISTED_TOKEN);
 			if (savedToken !== undefined && savedToken !== null) {
 				figma.ui.postMessage({
 					type: IS_TOKEN_SAVED,
 					value: true,
 					savedFormValue: "",
-					isTokenEditing: figma.command === "token-reset-command",
+					isTokenEditing: figma.command === TOKEN_RESET_CMD,
 					savedToken,
 				});
 			} else {
@@ -59,7 +70,7 @@ figma.ui.onmessage = async (msg) => {
 					type: IS_TOKEN_SAVED,
 					value: false,
 					savedFormValue: "",
-					isTokenEditing: figma.command === "token-reset-command",
+					isTokenEditing: figma.command === TOKEN_RESET_CMD,
 				});
 			}
 		} catch (err) {
@@ -68,7 +79,7 @@ figma.ui.onmessage = async (msg) => {
 	}
 	if (msg.type === SAVE_TOKEN) {
 		figma.clientStorage
-			.setAsync("persistedToken", msg.value)
+			.setAsync(PERSISTED_TOKEN, msg.value)
 			.then(() => {
 				const body = {
 					type: CREATE_FORM,
@@ -76,7 +87,7 @@ figma.ui.onmessage = async (msg) => {
 					savedFormValue: "",
 				};
 				figma.clientStorage
-					.getAsync("savedFormValue")
+					.getAsync(SAVED_FORM_VALUE)
 					.then((value) => {
 						body.savedFormValue = value;
 						figma.ui.postMessage(body);
@@ -89,14 +100,14 @@ figma.ui.onmessage = async (msg) => {
 				console.error("Error saving token:", err);
 			});
 	}
-	if (msg.type === "delete-token") {
-		figma.clientStorage.deleteAsync("persistedToken");
+	if (msg.type === DELETE_TOKEN) {
+		figma.clientStorage.deleteAsync(PERSISTED_TOKEN);
 	}
 
 	if (msg.type === TRANSFORM) {
 		if (msg.params) {
 			figma.clientStorage
-				.setAsync("savedFormValue", msg.params)
+				.setAsync(SAVED_FORM_VALUE, msg.params)
 				.then(() => {
 					console.log("Data Saved");
 				})
@@ -114,15 +125,15 @@ figma.ui.onmessage = async (msg) => {
 			return;
 		} else {
 			node = figma.currentPage.selection[0];
-			if (node.fills[0].type !== "IMAGE") {
+			if (node.fills[0].type !== IMAGE) {
 				figma.notify("Make sure you are selecting an image");
 				return;
 			}
-			if (node.fills[0].type === "IMAGE") {
+			if (node.fills[0].type === IMAGE) {
 				toggleLoader(true);
 				const image = figma.getImageByHash(node.fills[0].imageHash);
 				let bytes: any = null;
-				let token = await figma.clientStorage.getAsync("persistedToken");
+				let token = await figma.clientStorage.getAsync(PERSISTED_TOKEN);
 				if (image) {
 					bytes = await image.getBytesAsync();
 					figma.ui.postMessage({
@@ -144,7 +155,7 @@ figma.ui.onmessage = async (msg) => {
 			.then(async (image: Image) => {
 				node.fills = [
 					{
-						type: "IMAGE",
+						type: IMAGE,
 						imageHash: image.hash,
 						scaleMode: "FILL",
 					},
@@ -158,5 +169,5 @@ figma.ui.onmessage = async (msg) => {
 			.catch((err) => {
 				figma.notify("Something went wrong");
 			});
-	} else if (msg.type === "close-plugin") figma.closePlugin();
+	} else if (msg.type === CLOSE_PLUGIN) figma.closePlugin();
 };

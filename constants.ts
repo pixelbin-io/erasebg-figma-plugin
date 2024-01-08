@@ -35,4 +35,15 @@ export enum EVENTS {
 	SAVE_TOKEN = "save-token",
 	IS_TOKEN_SAVED = "is-token-saved",
 	OPEN_EXTERNAL_URL = "open-external-url",
+	DELETE_TOKEN = "delete-token",
+	CLOSE_PLUGIN = "close-plugin",
 }
+
+export enum COMMANDS {
+	HOW_IT_WORKS_CMD = "how-it-works-command",
+	TOKEN_RESET_CMD = "token-reset-command",
+}
+
+export const PERSISTED_TOKEN = "persistedToken";
+export const SAVED_FORM_VALUE = "savedFormValue";
+export const IMAGE = "IMAGE";

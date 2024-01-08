@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { v4 as uuidv4 } from "uuid";
-import Button from "./components/button/button";
 import { PdkAxios } from "@pixelbin/admin/common.js";
 import { PixelbinConfig, PixelbinClient } from "@pixelbin/admin";
 import { eraseBgOptions, EVENTS } from "./../constants";
@@ -17,7 +16,6 @@ function App() {
 	const [tokenValue, setTokenValue] = useState(null);
 	const [tokenErr, setTokenErr] = useState(false);
 	const [isTokenEditOn, setIsTokenEditOn] = useState(false);
-	const [isThemeDark, setIsThemeDark] = useState(false);
 	const [isTokenTypePass, setIsTokenTypePass] = useState(true);
 
 	const {
@@ -42,17 +40,6 @@ function App() {
 			"*"
 		);
 	}, []);
-
-	useEffect(() => {
-		const darkThemeMq = window.matchMedia("(prefers-color-scheme: dark)");
-		setIsThemeDark(darkThemeMq.matches);
-	});
-
-	window
-		.matchMedia("(prefers-color-scheme: dark)")
-		.addEventListener("change", (event) => {
-			setIsThemeDark(event.matches);
-		});
 
 	window.onmessage = async (event) => {
 		const { data } = event;
@@ -279,11 +266,7 @@ function App() {
 	}
 
 	return (
-		<div
-			className={`${
-				isThemeDark ? "main-container-dark" : "main-container-light"
-			} ${isLoading ? "hide-overflow" : ""}`}
-		>
+		<div className={`main-container ${isLoading ? "hide-overflow" : ""}`}>
 			{isTokenSaved && !isTokenEditOn ? (
 				<div className="main-ui-container">
 					<div>
