@@ -109,7 +109,7 @@ figma.ui.onmessage = async (msg) => {
 			figma.clientStorage
 				.setAsync(SAVED_FORM_VALUE, msg.params)
 				.then(() => {
-					console.log("Data Saved");
+					console.log("Data Saved", msg.params);
 				})
 				.catch((err) => {
 					console.error("Error saving data:", err);

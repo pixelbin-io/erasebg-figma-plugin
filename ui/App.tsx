@@ -2,12 +2,15 @@ import { useState, useEffect } from "react";
 import { v4 as uuidv4 } from "uuid";
 import { PdkAxios } from "@pixelbin/admin/common.js";
 import { PixelbinConfig, PixelbinClient } from "@pixelbin/admin";
-import { eraseBgOptions, EVENTS } from "./../constants";
+import { eraseBgOptions, EVENTS, createSignedURlDetails } from "./../constants";
 import { Util } from "./../util.ts";
 import "./styles/style.scss";
 import Pixelbin, { transformations } from "@pixelbin/core";
 import LoaderGif from "../assets/loader.gif";
-import { PIXELBIN_IO, PIXELBIN_CONSOLE_SETTINGS } from "../config";
+import { PIXELBIN_IO } from "../config";
+import CreditsUI from "./components/creditDetails";
+import TokenUI from "./components/TokenUI";
+import DynamicForm from "./components/dynamicForm";
 
 function App() {
 	const [formValues, setFormValues] = useState<any>({});
@@ -16,7 +19,6 @@ function App() {
 	const [tokenValue, setTokenValue] = useState(null);
 	const [tokenErr, setTokenErr] = useState(false);
 	const [isTokenEditOn, setIsTokenEditOn] = useState(false);
-	const [isTokenTypePass, setIsTokenTypePass] = useState(true);
 
 	const {
 		INITIAL_CALL,
@@ -26,7 +28,6 @@ function App() {
 		SAVE_TOKEN,
 		TRANSFORM,
 		SELCTED_IMAGE,
-		OPEN_EXTERNAL_URL,
 		REPLACE_IMAGE,
 	} = EVENTS;
 
@@ -87,14 +88,8 @@ function App() {
 			let name = `${data?.pluginMessage?.imageName}${uuidv4()}`;
 
 			res = await defaultPixelBinClient.assets.createSignedUrlV2({
-				path: "__figma/ebg",
+				...createSignedURlDetails,
 				name: name,
-				format: "jpeg",
-				access: "public-read",
-				tags: ["tag1", "tag2"],
-				metadata: {},
-				overwrite: false,
-				filenameOverride: false,
 			});
 
 			function uploadWithRetry(blob, presignedUrl, options) {
@@ -130,61 +125,6 @@ function App() {
 		if (data.pluginMessage.type === TOGGLE_LOADER) {
 			setIsLoading(data.pluginMessage.value);
 		}
-	};
-
-	const formComponentCreator = () => {
-		return (
-			<div>
-				{eraseBgOptions.map((obj, index) => {
-					switch (obj.type) {
-						case "enum":
-							return (
-								<div>
-									<div className="generic-text dropdown-label">{obj.title}</div>
-									<div className="select-wrapper">
-										<select
-											onChange={(e) => {
-												setFormValues({
-													...formValues,
-													[Util.camelCase(obj.name)]: e.target.value,
-												});
-											}}
-											id={Util.camelCase(obj.name)}
-											value={formValues[Util.camelCase(obj.name)]}
-										>
-											{obj.enum.map((option, index) => (
-												<option key={index} value={option}>
-													{option}
-												</option>
-											))}
-										</select>
-									</div>
-								</div>
-							);
-						case "boolean":
-							return (
-								<div className="checkbox">
-									<input
-										id={Util.camelCase(obj.name)}
-										type="checkbox"
-										checked={formValues[Util.camelCase(obj.name)]}
-										onChange={(e) => {
-											setFormValues({
-												...formValues,
-												[Util.camelCase(obj.name)]: e.target.checked,
-											});
-										}}
-									/>
-									<div className="generic-text">{obj.title}</div>
-								</div>
-							);
-
-						default:
-							return null;
-					}
-				})}
-			</div>
-		);
 	};
 
 	function handleReset() {
@@ -253,43 +193,18 @@ function App() {
 		);
 	}
 
-	function handleLinkClick(url: string) {
-		parent.postMessage(
-			{
-				pluginMessage: {
-					type: OPEN_EXTERNAL_URL,
-					url,
-				},
-			},
-			"*"
-		);
-	}
-
 	return (
 		<div className={`main-container ${isLoading ? "hide-overflow" : ""}`}>
 			{isTokenSaved && !isTokenEditOn ? (
 				<div className="main-ui-container">
 					<div>
-						<div id="options-wrapper">{formComponentCreator()}</div>
-
-						<div className="credit-details-container">
-							<div className="credit-details-sub-container">
-								Credits remaining : <span>20</span>
-							</div>
-							<div className="credit-details-sub-container">
-								Credits used : <span>10</span>
-							</div>
-							<div
-								onClick={() => {
-									handleLinkClick(
-										`${PIXELBIN_CONSOLE_SETTINGS}/billing/pricing`
-									);
-								}}
-								className="buy-credits-btn"
-							>
-								Buy credits
-							</div>
+						<div id="options-wrapper">
+							<DynamicForm
+								setFormValues={setFormValues}
+								formValues={formValues}
+							/>
 						</div>
+						<CreditsUI />
 					</div>
 					<div className="bottom-btn-container">
 						<div className="reset-container" id="reset" onClick={handleReset}>
@@ -318,88 +233,13 @@ function App() {
 					</div>
 				</div>
 			) : (
-				<div className="api-key-ui">
-					<div className="api-key-steps">
-						<div>
-							1. Go to
-							<span
-								className="link"
-								onClick={() => {
-									handleLinkClick(`${PIXELBIN_CONSOLE_SETTINGS}/apps`);
-								}}
-							>
-								&nbsp;Pixelbin.io
-							</span>
-							<br /> and choose your organisation
-						</div>
-						<br />
-						<div>
-							2. Create new token or select the existing one , copy the active
-							one and paste it here.
-						</div>
-						<div className="token-input-container">
-							<input
-								className="token-input-box"
-								type={`${isTokenTypePass ? "password" : "text"}`}
-								placeholder="Token here"
-								onChange={(e) => {
-									setTokenValue(e.target.value);
-								}}
-								value={tokenValue ? tokenValue : null}
-							/>
-							{
-								<div>
-									{tokenValue ? (
-										isTokenTypePass ? (
-											<div
-												onClick={() => {
-													setIsTokenTypePass(!isTokenTypePass);
-												}}
-												className="icon  icon--blue icon--visible"
-											/>
-										) : (
-											<div
-												onClick={() => {
-													setIsTokenTypePass(!isTokenTypePass);
-												}}
-												className="icon  icon--blue icon--hidden
-											"
-											/>
-										)
-									) : null}
-								</div>
-							}
-						</div>
-						{tokenErr && <div className="token-err ">Invalid token.</div>}
-					</div>
-
-					<div
-						className={`api-key-btn-container ${
-							tokenValue ? "space-between" : "right"
-						}`}
-					>
-						{tokenValue && (
-							<div
-								onClick={handleTokenDelete}
-								className="delete-token-container"
-							>
-								<div className="icon  icon--blue icon--trash"></div>
-								<div className="reset-text" style={{ fontSize: 12 }}>
-									Delete token
-								</div>
-							</div>
-						)}
-
-						<button
-							id="submit-token"
-							onClick={handleTokenSave}
-							className="button button--primary"
-							disabled={!tokenValue}
-						>
-							Save
-						</button>
-					</div>
-				</div>
+				<TokenUI
+					tokenValue={tokenValue}
+					tokenErr={tokenErr}
+					setTokenValue={setTokenValue}
+					handleTokenDelete={handleTokenDelete}
+					handleTokenSave={handleTokenSave}
+				/>
 			)}
 			{isLoading && (
 				<div className="loader-modal">

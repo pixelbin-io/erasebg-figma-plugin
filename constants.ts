@@ -47,3 +47,13 @@ export enum COMMANDS {
 export const PERSISTED_TOKEN = "persistedToken";
 export const SAVED_FORM_VALUE = "savedFormValue";
 export const IMAGE = "IMAGE";
+
+export const createSignedURlDetails = {
+	path: "__figma/ebg",
+	format: "jpeg",
+	access: "public-read",
+	tags: ["tag1", "tag2"],
+	metadata: {},
+	overwrite: false,
+	filenameOverride: false,
+};
