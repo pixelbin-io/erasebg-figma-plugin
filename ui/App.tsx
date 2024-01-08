@@ -3,7 +3,7 @@ import { v4 as uuidv4 } from "uuid";
 import Button from "./components/button/button";
 import { PdkAxios } from "@pixelbin/admin/common.js";
 import { PixelbinConfig, PixelbinClient } from "@pixelbin/admin";
-import { eraseBgOptions, msgTypes } from "./../constants";
+import { eraseBgOptions, EVENTS } from "./../constants";
 import { Util } from "./../util.ts";
 import "./styles/style.scss";
 import Pixelbin, { transformations } from "@pixelbin/core";
@@ -20,11 +20,23 @@ function App() {
 	const [isThemeDark, setIsThemeDark] = useState(false);
 	const [isTokenTypePass, setIsTokenTypePass] = useState(true);
 
+	const {
+		INITIAL_CALL,
+		CREATE_FORM,
+		TOGGLE_LOADER,
+		IS_TOKEN_SAVED,
+		SAVE_TOKEN,
+		TRANSFORM,
+		SELCTED_IMAGE,
+		OPEN_EXTERNAL_URL,
+		REPLACE_IMAGE,
+	} = EVENTS;
+
 	useEffect(() => {
 		parent.postMessage(
 			{
 				pluginMessage: {
-					type: msgTypes.INITIAL_CALL,
+					type: INITIAL_CALL,
 				},
 			},
 			"*"
@@ -44,13 +56,13 @@ function App() {
 
 	window.onmessage = async (event) => {
 		const { data } = event;
-		if (data.pluginMessage.type === msgTypes.IS_TOKEN_SAVED) {
+		if (data.pluginMessage.type === IS_TOKEN_SAVED) {
 			setIsTokenSaved(data.pluginMessage.value);
 			if (data.pluginMessage.value)
 				setTokenValue(data.pluginMessage.savedToken);
 			if (data.pluginMessage.isTokenEditing) setIsTokenEditOn(true);
 		}
-		if (data.pluginMessage.type === msgTypes.CREATE_FORM) {
+		if (data.pluginMessage.type === CREATE_FORM) {
 			let temp = { ...formValues };
 			setIsTokenSaved(true);
 			eraseBgOptions.forEach((option, index) => {
@@ -64,7 +76,7 @@ function App() {
 			});
 			setFormValues({ ...temp });
 		}
-		if (data.pluginMessage.type === msgTypes.SELCTED_IMAGE) {
+		if (data.pluginMessage.type === SELCTED_IMAGE) {
 			const defaultPixelBinClient: PixelbinClient = new PixelbinClient(
 				new PixelbinConfig({
 					domain: `${PIXELBIN_IO}`,
@@ -109,7 +121,7 @@ function App() {
 						parent.postMessage(
 							{
 								pluginMessage: {
-									type: msgTypes.REPLACE_IMAGE,
+									type: REPLACE_IMAGE,
 									bgRemovedUrl: demoImage.getUrl(),
 								},
 							},
@@ -128,7 +140,7 @@ function App() {
 				concurrency: 2,
 			}).catch((err) => console.log("Final error:", err));
 		}
-		if (data.pluginMessage.type === msgTypes.TOGGLE_LOADER) {
+		if (data.pluginMessage.type === TOGGLE_LOADER) {
 			setIsLoading(data.pluginMessage.value);
 		}
 	};
@@ -216,7 +228,7 @@ function App() {
 			parent.postMessage(
 				{
 					pluginMessage: {
-						type: msgTypes.SAVE_TOKEN,
+						type: SAVE_TOKEN,
 						value: tokenValue,
 					},
 				},
@@ -246,7 +258,7 @@ function App() {
 		parent.postMessage(
 			{
 				pluginMessage: {
-					type: msgTypes.TRANSFORM,
+					type: TRANSFORM,
 					params: formValues,
 				},
 			},
@@ -258,7 +270,7 @@ function App() {
 		parent.postMessage(
 			{
 				pluginMessage: {
-					type: msgTypes.OPEN_EXTERNAL_URL,
+					type: OPEN_EXTERNAL_URL,
 					url,
 				},
 			},

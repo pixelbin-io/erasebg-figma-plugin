@@ -25,7 +25,7 @@ export const eraseBgOptions = [
 	},
 ];
 
-export enum msgTypes {
+export enum EVENTS {
 	TOGGLE_LOADER = "toggle-loader",
 	INITIAL_CALL = "initial-call",
 	CREATE_FORM = "create-form",

@@ -1,4 +1,4 @@
-import { eraseBgOptions, msgTypes } from "../constants";
+import { eraseBgOptions, EVENTS } from "../constants";
 import { HOW_IT_WORKS_URL } from "../config";
 
 //Append the UI
@@ -10,6 +10,17 @@ figma.showUI(__html__, {
 });
 
 const rectangles: RectangleNode[] = [];
+const {
+	INITIAL_CALL,
+	CREATE_FORM,
+	TOGGLE_LOADER,
+	IS_TOKEN_SAVED,
+	SAVE_TOKEN,
+	TRANSFORM,
+	SELCTED_IMAGE,
+	OPEN_EXTERNAL_URL,
+	REPLACE_IMAGE,
+} = EVENTS;
 
 if (figma.command === "how-it-works-command") {
 	figma.openExternal(HOW_IT_WORKS_URL);
@@ -17,7 +28,7 @@ if (figma.command === "how-it-works-command") {
 
 function toggleLoader(value: boolean) {
 	figma.ui.postMessage({
-		type: msgTypes.TOGGLE_LOADER,
+		type: TOGGLE_LOADER,
 		value,
 	});
 }
@@ -26,9 +37,9 @@ function toggleLoader(value: boolean) {
 figma.ui.onmessage = async (msg) => {
 	var node: any = figma?.currentPage?.selection[0];
 	var savedToken;
-	if (msg.type === msgTypes.INITIAL_CALL) {
+	if (msg.type === INITIAL_CALL) {
 		const body = {
-			type: msgTypes.CREATE_FORM,
+			type: CREATE_FORM,
 			optionsArray: eraseBgOptions,
 			savedFormValue: "",
 		};
@@ -37,7 +48,7 @@ figma.ui.onmessage = async (msg) => {
 			savedToken = await figma.clientStorage.getAsync("persistedToken");
 			if (savedToken !== undefined && savedToken !== null) {
 				figma.ui.postMessage({
-					type: msgTypes.IS_TOKEN_SAVED,
+					type: IS_TOKEN_SAVED,
 					value: true,
 					savedFormValue: "",
 					isTokenEditing: figma.command === "token-reset-command",
@@ -45,7 +56,7 @@ figma.ui.onmessage = async (msg) => {
 				});
 			} else {
 				figma.ui.postMessage({
-					type: msgTypes.IS_TOKEN_SAVED,
+					type: IS_TOKEN_SAVED,
 					value: false,
 					savedFormValue: "",
 					isTokenEditing: figma.command === "token-reset-command",
@@ -55,12 +66,12 @@ figma.ui.onmessage = async (msg) => {
 			console.log("err", err);
 		}
 	}
-	if (msg.type === msgTypes.SAVE_TOKEN) {
+	if (msg.type === SAVE_TOKEN) {
 		figma.clientStorage
 			.setAsync("persistedToken", msg.value)
 			.then(() => {
 				const body = {
-					type: msgTypes.CREATE_FORM,
+					type: CREATE_FORM,
 					optionsArray: eraseBgOptions,
 					savedFormValue: "",
 				};
@@ -82,7 +93,7 @@ figma.ui.onmessage = async (msg) => {
 		figma.clientStorage.deleteAsync("persistedToken");
 	}
 
-	if (msg.type === msgTypes.TRANSFORM) {
+	if (msg.type === TRANSFORM) {
 		if (msg.params) {
 			figma.clientStorage
 				.setAsync("savedFormValue", msg.params)
@@ -115,7 +126,7 @@ figma.ui.onmessage = async (msg) => {
 				if (image) {
 					bytes = await image.getBytesAsync();
 					figma.ui.postMessage({
-						type: msgTypes.SELCTED_IMAGE,
+						type: SELCTED_IMAGE,
 						imageBytes: bytes,
 						imageName: node?.name?.replace(/ /g, ""),
 						token,
@@ -124,10 +135,10 @@ figma.ui.onmessage = async (msg) => {
 			}
 		}
 	}
-	if (msg.type === msgTypes.OPEN_EXTERNAL_URL) {
+	if (msg.type === OPEN_EXTERNAL_URL) {
 		figma.openExternal(msg.url);
 	}
-	if (msg.type === msgTypes.REPLACE_IMAGE) {
+	if (msg.type === REPLACE_IMAGE) {
 		figma
 			.createImageAsync(msg?.bgRemovedUrl)
 			.then(async (image: Image) => {
