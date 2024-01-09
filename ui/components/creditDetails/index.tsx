@@ -42,9 +42,10 @@ function abbreviateNumber(number = 0) {
 interface creditsProps {
 	creditUSed: any;
 	totalCredit: any;
+	orgId: string;
 }
 
-function CreditsUI({ creditUSed, totalCredit }: creditsProps) {
+function CreditsUI({ creditUSed, totalCredit, orgId }: creditsProps) {
 	return (
 		<div className="credit-details-container">
 			<div className="credit-details-sub-container">
@@ -53,7 +54,9 @@ function CreditsUI({ creditUSed, totalCredit }: creditsProps) {
 			</div>
 			<div
 				onClick={() => {
-					handleLinkClick(`${PIXELBIN_CONSOLE_SETTINGS}/billing/pricing`);
+					handleLinkClick(
+						`https://console.pixelbin.io/organization/${orgId}/settings/billing/pricing`
+					);
 				}}
 				className="buy-credits-btn"
 			>
