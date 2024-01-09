@@ -306,18 +306,6 @@ function App() {
 							<div className="reset-text">Reset all</div>
 						</div>
 						<button
-							id="delete-token"
-							onClick={handleTokenDelete}
-							style={{
-								color: "transparent",
-								background: "transparent",
-								border: "none",
-								cursor: "pointer",
-							}}
-						>
-							D
-						</button>
-						<button
 							id="submit-btn"
 							onClick={handleSubmit}
 							className="button button--primary"

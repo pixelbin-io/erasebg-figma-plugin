@@ -10,7 +10,8 @@
 		"ui:tsc": "tsc -p ui/tsconfig.json",
 		"ui:vite": "vite build --config ui/vite.config.ts",
 		"ui:dev": "npm run ui:vite -- build --watch",
-		"ui:build": "npm run ui:vite && npm run ui:tsc"
+		"ui:build": "npm run ui:vite && npm run ui:tsc",
+		"create:build": "npm run plugin:build && npm run ui:build"
 	},
 	"dependencies": {
 		"@esbuild-plugins/node-globals-polyfill": "^0.2.3",

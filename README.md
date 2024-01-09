@@ -23,6 +23,7 @@ There are two sets of commands in `package.json`: one covers the plugin logic an
     "ui:vite":        "vite --config ui/vite.config.ts",
     "ui:dev":         "npm run ui:vite -- build --watch",
     "ui:build":       "npm run ui:vite && npm run ui:tsc"
+
 }
 ```
 
