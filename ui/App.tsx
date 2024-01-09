@@ -23,6 +23,8 @@ function App() {
 	const [isCancellable, setIsCancellable] = useState(false);
 	const [isReqCancelled, setIsReqCancelled] = useState(false);
 	const [cloudName, setCloudName] = useState("");
+	const [creditsUsed, setCreditUSed] = useState(0);
+	const [totalCredit, setTotalCredit] = useState(0);
 
 	var isReqCancelledVar = false;
 
@@ -105,6 +107,14 @@ function App() {
 				zone: "default", // optional
 			});
 
+			// const newData = await defaultPixelBinClient.billing.getUsage();
+			// console.log("newData", newData);
+			// const cu = newData.credits.used;
+			// const cr = newData?.total?.credits;
+
+			// setCreditUSed(cu);
+			// setTotalCredit(cr);
+
 			const EraseBg = transformations.EraseBG;
 			let name = `${data?.pluginMessage?.imageName}${uuidv4()}`;
 
@@ -137,6 +147,8 @@ function App() {
 							},
 							"*"
 						);
+						setCreditsDetails();
+
 						// }
 					})
 					.catch((err) => {
@@ -236,9 +248,32 @@ function App() {
 		);
 	}
 
+	async function setCreditsDetails() {
+		if (tokenValue && tokenValue !== null) {
+			console.log("tokenValue2", tokenValue);
+			const defaultPixelBinClient: PixelbinClient = new PixelbinClient(
+				new PixelbinConfig({
+					domain: `${PIXELBIN_IO}`,
+					apiSecret: `${tokenValue}`,
+				})
+			);
+
+			PdkAxios.defaults.withCredentials = false;
+
+			const newData = await defaultPixelBinClient.billing.getUsage();
+			console.log("newData", newData);
+			const cu = newData.credits.used;
+			const cr = newData?.total?.credits;
+
+			setCreditUSed(cu);
+			setTotalCredit(cr);
+		}
+	}
+
 	useEffect(() => {
-		console.log("formValues", formValues);
-	}, [formValues]);
+		console.log("tokenValue1", tokenValue);
+		setCreditsDetails();
+	}, [tokenValue]);
 
 	return (
 		<div className={`main-container ${isLoading ? "hide-overflow" : ""}`}>
@@ -251,7 +286,7 @@ function App() {
 								formValues={formValues}
 							/>
 						</div>
-						<CreditsUI />
+						<CreditsUI totalCredit={totalCredit} creditUSed={creditsUsed} />
 					</div>
 					<div className="bottom-btn-container">
 						<div className="reset-container" id="reset" onClick={handleReset}>

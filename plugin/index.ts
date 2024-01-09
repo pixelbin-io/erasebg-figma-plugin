@@ -155,11 +155,11 @@ figma.ui.onmessage = async (msg) => {
 			return;
 		} else {
 			node = figma.currentPage.selection[0];
-			if (node.fills[0].type !== IMAGE) {
+			if (node.fills && node.fills.length && node.fills[0].type !== IMAGE) {
 				figma.notify("Make sure you are selecting an image");
 				return;
 			}
-			if (node.fills && node.fills.length && node?.fills[0]?.type === IMAGE) {
+			if (node.fills && node.fills.length && node.fills[0].type === IMAGE) {
 				toggleLoader(true);
 				const image = figma.getImageByHash(node.fills[0].imageHash);
 				let bytes: any = null;
@@ -196,10 +196,7 @@ figma.ui.onmessage = async (msg) => {
 					},
 				];
 				toggleLoader(false);
-				figma.notify(
-					"Transformation Applied (you can use (ctrl/command + z/y) or  to undo/redo tranformation)",
-					{ timeout: 5000 }
-				);
+				figma.notify("Transformation Applied ", { timeout: 5000 });
 			})
 			.catch((err) => {
 				figma.notify("Something went wrong");
