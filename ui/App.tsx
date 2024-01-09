@@ -68,6 +68,18 @@ function App() {
 			if (data.pluginMessage.value) {
 				setTokenValue(data.pluginMessage.savedToken);
 				setCloudName(data.pluginMessage.savedCloudName);
+
+				let temp = { ...formValues };
+				eraseBgOptions.forEach((option, index) => {
+					const camelCaseName = Util.camelCase(option.name);
+					const savedValue = data.pluginMessage.savedFormValue[camelCaseName];
+
+					temp[camelCaseName] =
+						savedValue !== undefined && savedValue !== null
+							? savedValue
+							: option.default;
+				});
+				setFormValues({ ...temp });
 			}
 			if (data.pluginMessage.isTokenEditing) setIsTokenEditOn(true);
 		}

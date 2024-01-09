@@ -35,7 +35,7 @@ const {
 const { HOW_IT_WORKS_CMD, TOKEN_RESET_CMD } = COMMANDS;
 
 if (figma.command === HOW_IT_WORKS_CMD) {
-	figma.openExternal(`${HOW_IT_WORKS_URL}/GoFynd/PixelBin/_git/samui`);
+	figma.openExternal("https://www.erase.bg/");
 }
 
 function toggleLoader(value: boolean) {
@@ -48,7 +48,7 @@ function toggleLoader(value: boolean) {
 /* Handle the message from the UI */
 figma.ui.onmessage = async (msg) => {
 	var node: any = figma?.currentPage?.selection[0];
-	var savedToken, savedCloudName, savedFomValue;
+	var savedToken, savedCloudName, savedFormValue;
 	if (msg.type === INITIAL_CALL) {
 		const body = {
 			type: CREATE_FORM,
@@ -60,17 +60,16 @@ figma.ui.onmessage = async (msg) => {
 		try {
 			savedToken = await figma.clientStorage.getAsync(PERSISTED_TOKEN);
 			savedCloudName = await figma.clientStorage.getAsync(CLOUD_NAME);
-			savedFomValue = await figma.clientStorage.getAsync(SAVED_FORM_VALUE);
+			savedFormValue = await figma.clientStorage.getAsync(SAVED_FORM_VALUE);
 
 			if (savedToken !== undefined && savedToken !== null) {
 				figma.ui.postMessage({
 					type: IS_TOKEN_SAVED,
 					value: true,
-					savedFormValue: "",
 					isTokenEditing: figma.command === TOKEN_RESET_CMD,
 					savedToken,
 					savedCloudName,
-					savedFomValue,
+					savedFormValue,
 				});
 			} else {
 				figma.ui.postMessage({
