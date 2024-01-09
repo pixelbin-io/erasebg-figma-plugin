@@ -22,7 +22,8 @@ There are two sets of commands in `package.json`: one covers the plugin logic an
     "ui:tsc":         "tsc -p ui/tsconfig.json",
     "ui:vite":        "vite --config ui/vite.config.ts",
     "ui:dev":         "npm run ui:vite -- build --watch",
-    "ui:build":       "npm run ui:vite && npm run ui:tsc"
+    "ui:build":       "npm run ui:vite && npm run ui:tsc",
+    "create:build": "npm run plugin:build && npm run ui:build"
 
 }
 ```
@@ -30,9 +31,8 @@ There are two sets of commands in `package.json`: one covers the plugin logic an
 ## Development Process
 
 1. Clone this repository and install developer dependencies using `npm install -D` command.
-2. Back in Figma, go to `Plugins` → `Manage Plugins…`, find the plugin you’ve created and remove it.
-3. Then, go to `Plugins` → `Development` → `Import plugin from manifest…` and select `manifest.json` _stored in this repository_.
-4. And Plugin is ready to run
+2. create a build for plugin and ui using `npm run create:build`
+3. And Plugin is ready to run
 
 ## References
 
