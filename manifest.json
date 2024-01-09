@@ -1,6 +1,6 @@
 {
 	"name": "Erase.bg",
-	"id": "1321746727890933516",
+	"id": "1326491234258251306",
 	"api": "1.0.0",
 	"editorType": ["figma"],
 	"main": "dist/plugin/index.js",
@@ -18,5 +18,14 @@
 			"name": "How it works",
 			"command": "how-it-works-command"
 		}
-	]
+	],
+	"networkAccess": {
+		"allowedDomains": [
+			"https://console.pixelbin.io",
+			"https://pixebin.io",
+			"https://api.pixelbin.io",
+			"https://rsms.me",
+			"https://cdn.pixelbin.io"
+		]
+	}
 }
