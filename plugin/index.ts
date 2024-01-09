@@ -5,6 +5,7 @@ import {
 	PERSISTED_TOKEN,
 	SAVED_FORM_VALUE,
 	IMAGE,
+	CLOUD_NAME,
 } from "../constants";
 import { HOW_IT_WORKS_URL } from "../config";
 
@@ -34,7 +35,7 @@ const {
 const { HOW_IT_WORKS_CMD, TOKEN_RESET_CMD } = COMMANDS;
 
 if (figma.command === HOW_IT_WORKS_CMD) {
-	figma.openExternal("https://www.erase.bg/");
+	figma.openExternal(`${HOW_IT_WORKS_URL}/GoFynd/PixelBin/_git/samui`);
 }
 
 function toggleLoader(value: boolean) {
@@ -47,16 +48,20 @@ function toggleLoader(value: boolean) {
 /* Handle the message from the UI */
 figma.ui.onmessage = async (msg) => {
 	var node: any = figma?.currentPage?.selection[0];
-	var savedToken;
+	var savedToken, savedCloudName, savedFomValue;
 	if (msg.type === INITIAL_CALL) {
 		const body = {
 			type: CREATE_FORM,
 			optionsArray: eraseBgOptions,
 			savedFormValue: "",
+			savedCloudName: "",
 		};
 
 		try {
 			savedToken = await figma.clientStorage.getAsync(PERSISTED_TOKEN);
+			savedCloudName = await figma.clientStorage.getAsync(CLOUD_NAME);
+			savedFomValue = await figma.clientStorage.getAsync(SAVED_FORM_VALUE);
+
 			if (savedToken !== undefined && savedToken !== null) {
 				figma.ui.postMessage({
 					type: IS_TOKEN_SAVED,
@@ -64,6 +69,8 @@ figma.ui.onmessage = async (msg) => {
 					savedFormValue: "",
 					isTokenEditing: figma.command === TOKEN_RESET_CMD,
 					savedToken,
+					savedCloudName,
+					savedFomValue,
 				});
 			} else {
 				figma.ui.postMessage({
@@ -74,25 +81,41 @@ figma.ui.onmessage = async (msg) => {
 				});
 			}
 		} catch (err) {
-			console.log("err", err);
+			figma.notify("Something wnet wrong");
 		}
 	}
 	if (msg.type === SAVE_TOKEN) {
 		figma.clientStorage
 			.setAsync(PERSISTED_TOKEN, msg.value)
 			.then(() => {
+				figma.clientStorage
+					.setAsync(CLOUD_NAME, msg.cloudName)
+					.then(() => {})
+					.catch(() => {});
+
 				const body = {
 					type: CREATE_FORM,
 					optionsArray: eraseBgOptions,
 					savedFormValue: "",
+					cloudName: "",
 				};
+
+				figma.clientStorage
+					.getAsync(CLOUD_NAME)
+					.then((value) => {
+						body.cloudName = value;
+					})
+					.catch((err) => {});
+
 				figma.clientStorage
 					.getAsync(SAVED_FORM_VALUE)
 					.then((value) => {
+						console.log("LAtestForm", value);
 						body.savedFormValue = value;
 						figma.ui.postMessage(body);
 					})
 					.catch((err) => {
+						console.log("LAtestFormErr");
 						figma.ui.postMessage(body);
 					});
 			})
@@ -136,11 +159,12 @@ figma.ui.onmessage = async (msg) => {
 				figma.notify("Make sure you are selecting an image");
 				return;
 			}
-			if (node.fills[0].type === IMAGE) {
+			if (node.fills && node.fills.length && node?.fills[0]?.type === IMAGE) {
 				toggleLoader(true);
 				const image = figma.getImageByHash(node.fills[0].imageHash);
 				let bytes: any = null;
 				let token = await figma.clientStorage.getAsync(PERSISTED_TOKEN);
+				let savedCloudName = await figma.clientStorage.getAsync(CLOUD_NAME);
 				if (image) {
 					bytes = await image.getBytesAsync();
 					figma.ui.postMessage({
@@ -148,8 +172,12 @@ figma.ui.onmessage = async (msg) => {
 						imageBytes: bytes,
 						imageName: node?.name?.replace(/ /g, ""),
 						token,
+						savedCloudName,
 					});
 				}
+			} else {
+				figma.notify("Make sure you are selecting an image");
+				return;
 			}
 		}
 	}

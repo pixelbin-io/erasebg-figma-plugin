@@ -47,6 +47,7 @@ export enum COMMANDS {
 export const PERSISTED_TOKEN = "persistedToken";
 export const SAVED_FORM_VALUE = "savedFormValue";
 export const IMAGE = "IMAGE";
+export const CLOUD_NAME = "cloudName";
 
 export const createSignedURlDetails = {
 	path: "__figma/ebg",

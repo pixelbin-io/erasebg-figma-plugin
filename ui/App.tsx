@@ -22,6 +22,8 @@ function App() {
 	const [isTokenEditOn, setIsTokenEditOn] = useState(false);
 	const [isCancellable, setIsCancellable] = useState(false);
 	const [isReqCancelled, setIsReqCancelled] = useState(false);
+	const [cloudName, setCloudName] = useState("");
+
 	var isReqCancelledVar = false;
 
 	const {
@@ -50,15 +52,25 @@ function App() {
 		);
 	}, []);
 
+	// useEffect(() => {
+	// 	pixelbin = new Pixelbin({
+	// 		cloudName: `${cloudName}`,
+	// 		zone: "default", // optional
+	// 	});
+	// }, [cloudName]);
+
 	window.onmessage = async (event) => {
 		const { data } = event;
 		if (data.pluginMessage.type === IS_TOKEN_SAVED) {
 			setIsTokenSaved(data.pluginMessage.value);
-			if (data.pluginMessage.value)
+			if (data.pluginMessage.value) {
 				setTokenValue(data.pluginMessage.savedToken);
+				setCloudName(data.pluginMessage.savedCloudName);
+			}
 			if (data.pluginMessage.isTokenEditing) setIsTokenEditOn(true);
 		}
 		if (data.pluginMessage.type === CREATE_FORM) {
+			console.log("I am called", formValues);
 			let temp = { ...formValues };
 			setIsTokenSaved(true);
 			eraseBgOptions.forEach((option, index) => {
@@ -87,8 +99,9 @@ function App() {
 				type: "image/jpeg",
 			});
 
-			const pixelbin = new Pixelbin({
-				cloudName: "muddy-lab-41820d",
+			console.log("cloudNAmeHere", data.pluginMessage.savedCloudName);
+			var pixelbin = new Pixelbin({
+				cloudName: `${data.pluginMessage.savedCloudName}`,
 				zone: "default", // optional
 			});
 
@@ -112,6 +125,7 @@ function App() {
 						const url = JSON.parse(
 							presignedUrl.fields["x-pixb-meta-assetdata"]
 						);
+
 						const demoImage = pixelbin.image(url?.fileId);
 						demoImage.setTransformation(EraseBg.bg(formValues));
 						parent.postMessage(
@@ -169,11 +183,13 @@ function App() {
 		try {
 			const orgDetails =
 				await defaultPixelBinClient.organization.getAppOrgDetails();
+			console.log("orgDetails", orgDetails);
 			parent.postMessage(
 				{
 					pluginMessage: {
 						type: SAVE_TOKEN,
 						value: tokenValue,
+						cloudName: orgDetails?.org?.cloudName,
 					},
 				},
 				"*"
