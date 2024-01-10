@@ -48,6 +48,7 @@ export const PERSISTED_TOKEN = "persistedToken";
 export const SAVED_FORM_VALUE = "savedFormValue";
 export const IMAGE = "IMAGE";
 export const CLOUD_NAME = "cloudName";
+export const ORG_ID = "organisationId";
 
 export const createSignedURlDetails = {
 	path: "__figma/ebg",
@@ -57,4 +58,10 @@ export const createSignedURlDetails = {
 	metadata: {},
 	overwrite: false,
 	filenameOverride: false,
+};
+
+export const uploadOptions = {
+	chunkSize: 2 * 1024 * 1024,
+	maxRetries: 1,
+	concurrency: 2,
 };

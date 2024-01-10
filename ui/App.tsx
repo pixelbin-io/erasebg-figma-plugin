@@ -2,16 +2,23 @@ import { useState, useEffect } from "react";
 import { v4 as uuidv4 } from "uuid";
 import { PdkAxios } from "@pixelbin/admin/common.js";
 import { PixelbinConfig, PixelbinClient } from "@pixelbin/admin";
-import { eraseBgOptions, EVENTS, createSignedURlDetails } from "./../constants";
+import {
+	eraseBgOptions,
+	EVENTS,
+	createSignedURlDetails,
+	uploadOptions,
+} from "./../constants";
 import { Util } from "./../util.ts";
 import "./styles/style.scss";
 import Pixelbin, { transformations } from "@pixelbin/core";
-import LoaderGif from "../assets/loader.gif";
 import { PIXELBIN_IO } from "../config";
 import CreditsUI from "./components/creditDetails";
 import TokenUI from "./components/TokenUI";
 import DynamicForm from "./components/dynamicForm";
 import Loader from "./components/loader";
+import Footer from "./components/mainScreenFooter/index.tsx";
+
+PdkAxios.defaults.withCredentials = false;
 
 function App() {
 	const [formValues, setFormValues] = useState<any>({});
@@ -20,13 +27,9 @@ function App() {
 	const [tokenValue, setTokenValue] = useState(null);
 	const [tokenErr, setTokenErr] = useState(false);
 	const [isTokenEditOn, setIsTokenEditOn] = useState(false);
-	const [isCancellable, setIsCancellable] = useState(false);
-	const [isReqCancelled, setIsReqCancelled] = useState(false);
-	const [cloudName, setCloudName] = useState("");
 	const [creditsUsed, setCreditUSed] = useState(0);
 	const [totalCredit, setTotalCredit] = useState(0);
-
-	var isReqCancelledVar = false;
+	const [orgId, setOrgId] = useState("");
 
 	const {
 		INITIAL_CALL,
@@ -40,9 +43,6 @@ function App() {
 		DELETE_TOKEN,
 	} = EVENTS;
 
-	const abortController = new AbortController();
-	const signal = abortController.signal;
-
 	useEffect(() => {
 		parent.postMessage(
 			{
@@ -54,12 +54,19 @@ function App() {
 		);
 	}, []);
 
-	// useEffect(() => {
-	// 	pixelbin = new Pixelbin({
-	// 		cloudName: `${cloudName}`,
-	// 		zone: "default", // optional
-	// 	});
-	// }, [cloudName]);
+	function formSetter(data) {
+		let temp = { ...formValues };
+		eraseBgOptions.forEach((option, index) => {
+			const camelCaseName = Util.camelCase(option.name);
+			const savedValue = data[camelCaseName];
+
+			temp[camelCaseName] =
+				savedValue !== undefined && savedValue !== null
+					? savedValue
+					: option.default;
+		});
+		setFormValues({ ...temp });
+	}
 
 	window.onmessage = async (event) => {
 		const { data } = event;
@@ -67,37 +74,18 @@ function App() {
 			setIsTokenSaved(data.pluginMessage.value);
 			if (data.pluginMessage.value) {
 				setTokenValue(data.pluginMessage.savedToken);
-				setCloudName(data.pluginMessage.savedCloudName);
-
-				let temp = { ...formValues };
-				eraseBgOptions.forEach((option, index) => {
-					const camelCaseName = Util.camelCase(option.name);
-					const savedValue = data.pluginMessage.savedFormValue[camelCaseName];
-
-					temp[camelCaseName] =
-						savedValue !== undefined && savedValue !== null
-							? savedValue
-							: option.default;
-				});
-				setFormValues({ ...temp });
+				formSetter(data.pluginMessage.savedFormValue);
+				setOrgId(data.pluginMessage.orgId);
+				setIsTokenEditOn(false);
 			}
-			if (data.pluginMessage.isTokenEditing) setIsTokenEditOn(true);
+			setIsTokenEditOn(data.pluginMessage.isTokenEditing);
 		}
 		if (data.pluginMessage.type === CREATE_FORM) {
-			console.log("I am called", formValues);
-			let temp = { ...formValues };
+			formSetter(data.pluginMessage.savedFormValue);
+			setIsTokenEditOn(false);
 			setIsTokenSaved(true);
-			eraseBgOptions.forEach((option, index) => {
-				const camelCaseName = Util.camelCase(option.name);
-				const savedValue = data.pluginMessage.savedFormValue[camelCaseName];
-
-				temp[camelCaseName] =
-					savedValue !== undefined && savedValue !== null
-						? savedValue
-						: option.default;
-			});
-			setFormValues({ ...temp });
 		}
+
 		if (data.pluginMessage.type === SELCTED_IMAGE) {
 			const defaultPixelBinClient: PixelbinClient = new PixelbinClient(
 				new PixelbinConfig({
@@ -106,26 +94,15 @@ function App() {
 				})
 			);
 
-			PdkAxios.defaults.withCredentials = false;
-
 			let res = null;
 			let blob = new Blob([data.pluginMessage.imageBytes], {
 				type: "image/jpeg",
 			});
 
-			console.log("cloudNAmeHere", data.pluginMessage.savedCloudName);
 			var pixelbin = new Pixelbin({
 				cloudName: `${data.pluginMessage.savedCloudName}`,
 				zone: "default", // optional
 			});
-
-			// const newData = await defaultPixelBinClient.billing.getUsage();
-			// console.log("newData", newData);
-			// const cu = newData.credits.used;
-			// const cr = newData?.total?.credits;
-
-			// setCreditUSed(cu);
-			// setTotalCredit(cr);
 
 			const EraseBg = transformations.EraseBG;
 			let name = `${data?.pluginMessage?.imageName}${uuidv4()}`;
@@ -138,12 +115,6 @@ function App() {
 			function uploadWithRetry(blob, presignedUrl, options) {
 				return Pixelbin.upload(blob, presignedUrl, options)
 					.then(() => {
-						// console.log("isReqCancelled", isReqCancelledVar);
-						// if (isReqCancelledVar) {
-						// 	console.log("isReqCancelled2", isReqCancelledVar);
-						// 	isReqCancelledVar = false;
-						// 	return;
-						// } else {
 						const url = JSON.parse(
 							presignedUrl.fields["x-pixb-meta-assetdata"]
 						);
@@ -160,26 +131,18 @@ function App() {
 							"*"
 						);
 						setCreditsDetails();
-
-						// }
 					})
 					.catch((err) => {
-						console.log(`Retry upload`);
 						return uploadWithRetry(blob, presignedUrl, options);
 					});
 			}
 
-			uploadWithRetry(blob, res?.presignedUrl, {
-				chunkSize: 2 * 1024 * 1024,
-				maxRetries: 1,
-				concurrency: 2,
-				// signal: signal,
-			}).catch((err) => console.log("Final error:", err));
+			uploadWithRetry(blob, res?.presignedUrl, uploadOptions).catch((err) =>
+				console.log("Final error:", err)
+			);
 		}
-		if (data.pluginMessage.type === TOGGLE_LOADER) {
+		if (data.pluginMessage.type === TOGGLE_LOADER)
 			setIsLoading(data.pluginMessage.value);
-			setIsCancellable(data.pluginMessage.value);
-		}
 	};
 
 	function handleReset() {
@@ -202,8 +165,6 @@ function App() {
 			})
 		);
 
-		PdkAxios.defaults.withCredentials = false;
-
 		try {
 			const orgDetails =
 				await defaultPixelBinClient.organization.getAppOrgDetails();
@@ -214,6 +175,7 @@ function App() {
 						type: SAVE_TOKEN,
 						value: tokenValue,
 						cloudName: orgDetails?.org?.cloudName,
+						orgId: orgDetails?.app?.orgId,
 					},
 				},
 				"*"
@@ -238,16 +200,6 @@ function App() {
 		);
 	}
 
-	function onAbort() {
-		// console.log("Aborted");
-		// setIsReqCancelled(true);
-		// isReqCancelledVar = true;
-		// abortController.abort();
-		// setIsLoading(false);
-		// setIsCancellable(false);
-		// console.log("ENd Aborted");
-	}
-
 	function handleSubmit() {
 		parent.postMessage(
 			{
@@ -262,7 +214,6 @@ function App() {
 
 	async function setCreditsDetails() {
 		if (tokenValue && tokenValue !== null) {
-			console.log("tokenValue2", tokenValue);
 			const defaultPixelBinClient: PixelbinClient = new PixelbinClient(
 				new PixelbinConfig({
 					domain: `${PIXELBIN_IO}`,
@@ -270,20 +221,19 @@ function App() {
 				})
 			);
 
-			PdkAxios.defaults.withCredentials = false;
-
-			const newData = await defaultPixelBinClient.billing.getUsage();
-			console.log("newData", newData);
-			const cu = newData.credits.used;
-			const cr = newData?.total?.credits;
-
-			setCreditUSed(cu);
-			setTotalCredit(cr);
+			try {
+				const newData = await defaultPixelBinClient.billing.getUsage();
+				const cu = newData.credits.used;
+				const cr = newData?.total?.credits;
+				setCreditUSed(cu);
+				setTotalCredit(cr);
+			} catch (err) {
+				console.log("error", err);
+			}
 		}
 	}
 
 	useEffect(() => {
-		console.log("tokenValue1", tokenValue);
 		setCreditsDetails();
 	}, [tokenValue]);
 
@@ -298,21 +248,13 @@ function App() {
 								formValues={formValues}
 							/>
 						</div>
-						<CreditsUI totalCredit={totalCredit} creditUSed={creditsUsed} />
+						<CreditsUI
+							totalCredit={totalCredit}
+							creditUSed={creditsUsed}
+							orgId={orgId}
+						/>
 					</div>
-					<div className="bottom-btn-container">
-						<div className="reset-container" id="reset" onClick={handleReset}>
-							<div className="icon icon--swap icon--blue reset-icon"></div>
-							<div className="reset-text">Reset all</div>
-						</div>
-						<button
-							id="submit-btn"
-							onClick={handleSubmit}
-							className="button button--primary"
-						>
-							Apply
-						</button>
-					</div>
+					<Footer handleReset={handleReset} handleSubmit={handleSubmit} />
 				</div>
 			) : (
 				<TokenUI
@@ -323,7 +265,7 @@ function App() {
 					handleTokenSave={handleTokenSave}
 				/>
 			)}
-			{isLoading && <Loader isCancellable={false} onCancelClick={onAbort} />}
+			{isLoading && <Loader />}
 		</div>
 	);
 }
