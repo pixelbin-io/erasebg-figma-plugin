@@ -103,30 +103,30 @@ figma.ui.onmessage = async (msg) => {
 				const body = {
 					type: CREATE_FORM,
 					optionsArray: eraseBgOptions,
-					savedFormValue: "",
-					cloudName: "",
-					orgId: "",
+					savedFormValue: eraseBgOptions,
+					cloudName: msg.cloudName,
+					orgId: msg.orgId,
 				};
 
-				figma.clientStorage
-					.getAsync(CLOUD_NAME)
-					.then((value) => {
-						body.cloudName = value;
-					})
-					.catch((err) => {});
+				// figma.clientStorage
+				// 	.getAsync(CLOUD_NAME)
+				// 	.then((value) => {
+				// 		body.cloudName = value;
+				// 	})
+				// 	.catch((err) => {});
 
-				figma.clientStorage
-					.getAsync(ORG_ID)
-					.then((value) => {
-						body.orgId = value;
-					})
-					.catch((err) => {});
+				// figma.clientStorage
+				// 	.getAsync(ORG_ID)
+				// 	.then((value) => {
+				// 		body.orgId = value;
+				// 	})
+				// 	.catch((err) => {});
 
 				figma.clientStorage
 					.getAsync(SAVED_FORM_VALUE)
 					.then((value) => {
 						console.log("LAtestForm", value);
-						body.savedFormValue = value;
+						body.savedFormValue = value || eraseBgOptions;
 						figma.ui.postMessage(body);
 					})
 					.catch((err) => {
