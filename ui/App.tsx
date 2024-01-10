@@ -76,11 +76,15 @@ function App() {
 				setTokenValue(data.pluginMessage.savedToken);
 				formSetter(data.pluginMessage.savedFormValue);
 				setOrgId(data.pluginMessage.orgId);
+				setIsTokenEditOn(false);
 			}
-			if (data.pluginMessage.isTokenEditing) setIsTokenEditOn(true);
+			setIsTokenEditOn(data.pluginMessage.isTokenEditing);
 		}
-		if (data.pluginMessage.type === CREATE_FORM)
+		if (data.pluginMessage.type === CREATE_FORM) {
 			formSetter(data.pluginMessage.savedFormValue);
+			setIsTokenEditOn(false);
+			setIsTokenSaved(true);
+		}
 
 		if (data.pluginMessage.type === SELCTED_IMAGE) {
 			const defaultPixelBinClient: PixelbinClient = new PixelbinClient(
