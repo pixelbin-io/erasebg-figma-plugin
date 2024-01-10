@@ -108,20 +108,6 @@ figma.ui.onmessage = async (msg) => {
 					orgId: msg.orgId,
 				};
 
-				// figma.clientStorage
-				// 	.getAsync(CLOUD_NAME)
-				// 	.then((value) => {
-				// 		body.cloudName = value;
-				// 	})
-				// 	.catch((err) => {});
-
-				// figma.clientStorage
-				// 	.getAsync(ORG_ID)
-				// 	.then((value) => {
-				// 		body.orgId = value;
-				// 	})
-				// 	.catch((err) => {});
-
 				figma.clientStorage
 					.getAsync(SAVED_FORM_VALUE)
 					.then((value) => {

@@ -41,21 +41,29 @@ function TokenUI({
 		<div className="api-key-ui">
 			<div className="api-key-steps">
 				<div>
-					1. Go to
+					1. Go to the
+					<span
+						className="link"
+						onClick={() => {
+							handleLinkClick("https://console.pixelbin.io");
+						}}
+					>
+						&nbsp;console.pixelbin.io
+					</span>
+					&nbsp;and create a free acount{" "}
+					{`(you will need to confirm your email)`}
+				</div>
+				<br />
+				<div>
+					2. After that you can find your API key here
 					<span
 						className="link"
 						onClick={() => {
 							handleLinkClick(`${PIXELBIN_CONSOLE_SETTINGS}/apps`);
 						}}
 					>
-						&nbsp;Pixelbin.io
+						&nbsp;https://console.pixelbin.io/orga...
 					</span>
-					<br /> and choose your organisation
-				</div>
-				<br />
-				<div>
-					2. Create new token or select the existing one , copy the active one
-					and paste it here.
 				</div>
 				<div className="token-input-container">
 					<input
