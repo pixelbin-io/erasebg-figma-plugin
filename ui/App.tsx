@@ -72,13 +72,12 @@ function App() {
 		const { data } = event;
 		if (data.pluginMessage.type === IS_TOKEN_SAVED) {
 			setIsTokenSaved(data.pluginMessage.value);
+			setIsTokenEditOn(data.pluginMessage.isTokenEditing);
 			if (data.pluginMessage.value) {
 				setTokenValue(data.pluginMessage.savedToken);
 				formSetter(data.pluginMessage.savedFormValue);
 				setOrgId(data.pluginMessage.orgId);
-				setIsTokenEditOn(false);
 			}
-			setIsTokenEditOn(data.pluginMessage.isTokenEditing);
 		}
 		if (data.pluginMessage.type === CREATE_FORM) {
 			formSetter(data.pluginMessage.savedFormValue);
