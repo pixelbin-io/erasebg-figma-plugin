@@ -221,12 +221,15 @@ function App() {
 				})
 			);
 
-			const newData = await defaultPixelBinClient.billing.getUsage();
-			const cu = newData.credits.used;
-			const cr = newData?.total?.credits;
-
-			setCreditUSed(cu);
-			setTotalCredit(cr);
+			try {
+				const newData = await defaultPixelBinClient.billing.getUsage();
+				const cu = newData.credits.used;
+				const cr = newData?.total?.credits;
+				setCreditUSed(cu);
+				setTotalCredit(cr);
+			} catch (err) {
+				console.log("error", err);
+			}
 		}
 	}
 
