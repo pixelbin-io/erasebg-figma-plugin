@@ -7,6 +7,7 @@ import {
 	IMAGE,
 	CLOUD_NAME,
 	ORG_ID,
+	UTM_DETAILS,
 } from "../constants";
 import { HOW_IT_WORKS_URL } from "../config";
 
@@ -35,7 +36,8 @@ const {
 
 const { HOW_IT_WORKS_CMD, TOKEN_RESET_CMD } = COMMANDS;
 
-if (figma.command === HOW_IT_WORKS_CMD) figma.openExternal(HOW_IT_WORKS_URL);
+if (figma.command === HOW_IT_WORKS_CMD)
+	figma.openExternal(`${HOW_IT_WORKS_URL}${UTM_DETAILS}`);
 
 function toggleLoader(value: boolean) {
 	figma.ui.postMessage({

@@ -7,11 +7,12 @@ import {
 	EVENTS,
 	createSignedURlDetails,
 	uploadOptions,
+	UTM_DETAILS,
 } from "./../constants";
 import { Util } from "./../util.ts";
 import "./styles/style.scss";
 import Pixelbin, { transformations } from "@pixelbin/core";
-import { PIXELBIN_IO } from "../config";
+import { API_PIXELBIN_IO } from "../config";
 import CreditsUI from "./components/creditDetails";
 import TokenUI from "./components/TokenUI";
 import DynamicForm from "./components/dynamicForm";
@@ -88,7 +89,7 @@ function App() {
 		if (data.pluginMessage.type === SELCTED_IMAGE) {
 			const defaultPixelBinClient: PixelbinClient = new PixelbinClient(
 				new PixelbinConfig({
-					domain: `${PIXELBIN_IO}`,
+					domain: `${API_PIXELBIN_IO}`,
 					apiSecret: `${data.pluginMessage.token}`,
 				})
 			);
@@ -159,7 +160,7 @@ function App() {
 
 		const defaultPixelBinClient: PixelbinClient = new PixelbinClient(
 			new PixelbinConfig({
-				domain: `${PIXELBIN_IO}`,
+				domain: `${API_PIXELBIN_IO}`,
 				apiSecret: tokenValue,
 			})
 		);
@@ -167,7 +168,7 @@ function App() {
 		try {
 			const orgDetails =
 				await defaultPixelBinClient.organization.getAppOrgDetails();
-			console.log("orgDetails", orgDetails);
+			setOrgId(orgDetails?.app?.orgId);
 			parent.postMessage(
 				{
 					pluginMessage: {
@@ -215,7 +216,7 @@ function App() {
 		if (tokenValue && tokenValue !== null) {
 			const defaultPixelBinClient: PixelbinClient = new PixelbinClient(
 				new PixelbinConfig({
-					domain: `${PIXELBIN_IO}`,
+					domain: `${API_PIXELBIN_IO}`,
 					apiSecret: `${tokenValue}`,
 				})
 			);
