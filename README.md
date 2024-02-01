@@ -1,6 +1,6 @@
 # Erase.bg Figma Plugin
 
-Figma Plugin for [Erase.bg](Erase.bg), it helps users remove watermark from images, present in Figma files.
+Figma Plugin for [Erase.bg](Erase.bg), it helps users remove background from images, present in Figma files.
 
 ## Installation
 
@@ -39,4 +39,4 @@ Figma Plugin for [Erase.bg](Erase.bg), it helps users remove watermark from imag
 
 1. [Figma's introduction to plugin development](https://www.figma.com/plugin-docs/intro/)
 2. [Figma Plugin's with UI guide](https://github.com/thomas-lowry/figma-plugin-ds?tab=readme-ov-file#checkbox)
-3. [Figma's default color pallete] https://www.figma.com/plugin-docs/css-variables
+3. [Figma's default color pallete](https://www.figma.com/plugin-docs/css-variables)
