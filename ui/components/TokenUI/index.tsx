@@ -46,7 +46,7 @@ function TokenUI({
 						className="link"
 						onClick={() => {
 							handleLinkClick(
-								`${PIXELBIN_CONSOLE_SETTINGS}/apps${UTM_DETAILS}`
+								`${PIXELBIN_CONSOLE_SETTINGS}/apps&${UTM_DETAILS}`
 							);
 						}}
 					>
@@ -62,7 +62,7 @@ function TokenUI({
 						className="link"
 						onClick={() => {
 							handleLinkClick(
-								`${PIXELBIN_CONSOLE_SETTINGS}/apps${UTM_DETAILS}`
+								`${PIXELBIN_CONSOLE_SETTINGS}/apps&${UTM_DETAILS}`
 							);
 						}}
 					>
