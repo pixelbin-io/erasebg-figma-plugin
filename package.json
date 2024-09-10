@@ -1,6 +1,6 @@
 {
 	"name": "Erase.bg",
-	"version": "2.0.1",
+	"version": "18",
 	"description": "Figma Plugin Description",
 	"scripts": {
 		"plugin:tsc": "tsc -p plugin/tsconfig.json",
