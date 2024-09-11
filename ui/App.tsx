@@ -7,7 +7,6 @@ import {
 	EVENTS,
 	createSignedURlDetails,
 	uploadOptions,
-	UTM_DETAILS,
 } from "./../constants";
 import { Util } from "./../util.ts";
 import "./styles/style.scss";
@@ -91,6 +90,7 @@ function App() {
 				new PixelbinConfig({
 					domain: `${API_PIXELBIN_IO}`,
 					apiSecret: `${data.pluginMessage.token}`,
+					integrationPlatform: Util.generateUserAgent(),
 				})
 			);
 
@@ -162,6 +162,7 @@ function App() {
 			new PixelbinConfig({
 				domain: `${API_PIXELBIN_IO}`,
 				apiSecret: tokenValue,
+				integrationPlatform: Util.generateUserAgent(),
 			})
 		);
 
@@ -218,6 +219,7 @@ function App() {
 				new PixelbinConfig({
 					domain: `${API_PIXELBIN_IO}`,
 					apiSecret: `${tokenValue}`,
+					integrationPlatform: Util.generateUserAgent(),
 				})
 			);
 
